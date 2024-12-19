@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canna Birds</title>
+    <link rel="icon" href="3.png" type="image/png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #282c34;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            max-width: 480px;
+            height: 100vh;
+            max-height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            object-fit: contain;
+        }
+
+        #touchArea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            touch-action: manipulation;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 30px;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        #score, #highScore {
+            padding: 5px 15px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        #soundControls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 30px;
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .controlGroup {
+            display: flex;
+            gap: 10px;
+        }
+
+        .soundButton {
+            background: rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .soundButton:hover {
+            background: rgba(124, 255, 155, 0.4);
+            transform: scale(1.05);
+        }
+
+        .xLink {
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .xLink:hover {
+            color: #7cff9b;
+            transform: scale(1.1);
+        }
+
+        #soundToggle {
+            position: relative;
+            top: unset;
+            right: unset;
+        }
+
+        #loginScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(40, 44, 52, 0.95), rgba(40, 44, 52, 0.98));
+            z-index: 3;
+            padding: 20px;
+        }
+
+        #loginScreen h1 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 48px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(124, 255, 155, 0.5);
+        }
+
+        #loginScreen .instructions {
+            color: #7cff9b;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.8;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #loginScreen .instructions h2 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(124, 255, 155, 0.3);
+            letter-spacing: 1px;
+        }
+
+        #loginScreen .instructions li {
+            margin-bottom: 12px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        button {
+            background-color: #7cff9b;
+            color: #282c34;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(124, 255, 155, 0.3);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(124, 255, 155, 0.5);
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            display: none;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px 50px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(124, 255, 155, 0.3);
+        }
+
+        #finalScore {
+            font-size: 64px;
+            margin: 20px 0;
+            color: #7cff9b;
+            text-shadow: 0 0 10px rgba(124, 255, 155, 0.5);
+        }
+
+        .modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(40, 44, 52, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 4;
+            color: white;
+            min-width: 300px;
+        }
+
+        .modal h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .current-user {
+            background-color: rgba(124, 255, 155, 0.2);
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="480" height="640"></canvas>
+        <div id="touchArea"></div>
+        <div id="ui">
+            <div id="score">Score: 0</div>
+            <div id="highScore">High Score: 0</div>
+        </div>
+        <div id="soundControls">
+            <div class="controlGroup">
+                <button id="prevMusic" class="soundButton">
+                    <span>⏮️</span>
+                </button>
+                <button id="nextMusic" class="soundButton">
+                    <span>⏭️</span>
+                </button>
+                <button id="soundToggle" class="soundButton">
+                    <span class="sound-icon">🔊</span>
+                </button>
+            </div>
+            <a href="https://x.com/crgtleb" target="_blank" class="xLink">𝕏</a>
+        </div>
+        <div id="loginScreen">
+            <h1>Canna Birds</h1>
+            <div class="instructions">
+                <h2>How to Play?</h2>
+                <ul>
+                    <li>🎮 Press SPACE or tap the screen to jump</li>
+                    <li>🌿 Collect greens to extend your time</li>
+                    <li>⚠️ Avoid hitting obstacles</li>
+                    <li>🏆 Try to achieve the highest score!</li>
+                </ul>
+            </div>
+            <button id="startButton">Start Game</button>
+        </div>
+        <div id="gameOver">
+            <div id="finalScore">0</div>
+            <button onclick="game.reset()">Play Again</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 
